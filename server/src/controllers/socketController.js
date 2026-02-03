@@ -65,12 +65,14 @@ export function setupSocketHandlers(io) {
 
         const result = await BuildingService.buildBuilding(gameId, playerDbId, x, y, buildingType);
 
-        // 모든 플레이어에게 알림
+        // 모든 플레이어에게 알림 (업데이트된 타일 정보 포함)
         io.to(gameId).emit('buildingBuilt', {
           x,
           y,
           buildingType,
-          playerId: playerDbId
+          playerId: playerDbId,
+          has_camp: result.tile.has_camp,
+          has_mine: result.tile.has_mine
         });
       } catch (error) {
         socket.emit('error', { message: error.message });

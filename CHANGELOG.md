@@ -1,5 +1,64 @@
 # 변경 이력 (Changelog)
 
+## 2026-02-03 - 건물 시스템 개선 및 게임 밸런스 조정
+
+### 주요 변경사항
+
+#### 1. 복수 건물 건설 지원
+- 하나의 타일에 군인캠프와 광산을 모두 건설 가능
+- DB 스키마 변경: `building_type` → `has_camp`, `has_mine`
+- 건물이 둘 다 있을 때 좌우로 나란히 표시
+
+**변경된 파일:**
+- `server/migrations/002_multiple_buildings.sql` (신규)
+- `server/src/services/BuildingService.js`
+  - 건물 건설 로직 수정 (복수 건물 허용)
+  - 금/군인 생산 쿼리 수정
+- `client/src/services/gameRenderer.js`
+  - 복수 건물 렌더링 (좌우 배치)
+- `client/src/components/Game/GameControls.jsx`
+  - 건설 가능한 건물만 버튼 표시
+  - 복수 건물 정보 표시
+
+#### 2. 점령 비용 무료화 (테스트용)
+- 빈 땅 점령 비용: 금 10개 → 0개
+- 빠른 테스트를 위한 임시 조치
+
+**변경된 파일:**
+- `server/src/utils/gameConstants.js`
+  - LAND_CLAIM_COST: 10 → 0
+
+#### 3. 배경화면 커스터마이징 위치 안내
+**배경 이미지 설정 위치:**
+- 파일: `client/src/App.css`
+- 라인: 6-9 (body 선택자)
+- 현재: `background: #1a1a2e;` (단색)
+- 이미지 적용 예시:
+  ```css
+  body {
+    background: url('/path/to/image.jpg') center/cover no-repeat;
+    background-color: #1a1a2e; /* 폴백 색상 */
+  }
+  ```
+
+#### 4. UI/UX 개선
+- 게임 시작 시 시작 타일 표시 개선
+- 점령 후 즉시 명령 가능 (이미 구현됨)
+- 건물 상태 메시지 개선
+
+### 게임 플레이 개선
+
+**이전:**
+- 한 타일에 하나의 건물만 가능
+- 땅 점령에 금 10개 필요
+
+**현재:**
+- 한 타일에 군인캠프 + 광산 모두 건설 가능
+- 땅 점령 무료 (테스트 모드)
+- 더 빠르고 역동적인 게임 진행
+
+---
+
 ## 2026-02-03 - 게임 밸런스 조정 및 버그 수정
 
 ### 주요 변경사항

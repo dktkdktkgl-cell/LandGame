@@ -21,23 +21,30 @@ class BuildingService {
       throw new Error('You do not own this tile');
     }
 
-    // 이미 건물이 있는지 확인
-    if (tile.building_type) {
-      throw new Error('Building already exists on this tile');
-    }
-
     // 건물 타입 검증
     if (!Object.values(GAME_CONSTANTS.BUILDING_TYPES).includes(buildingType)) {
       throw new Error('Invalid building type');
     }
 
+    // 해당 건물이 이미 있는지 확인
+    if (buildingType === GAME_CONSTANTS.BUILDING_TYPES.CAMP && tile.has_camp) {
+      throw new Error('Camp already exists on this tile');
+    }
+    if (buildingType === GAME_CONSTANTS.BUILDING_TYPES.MINE && tile.has_mine) {
+      throw new Error('Mine already exists on this tile');
+    }
+
     // 건물 건설
+    const columnName = buildingType === GAME_CONSTANTS.BUILDING_TYPES.CAMP ? 'has_camp' : 'has_mine';
     await pool.query(
-      'UPDATE tiles SET building_type = $1 WHERE id = $2',
-      [buildingType, tile.id]
+      `UPDATE tiles SET ${columnName} = TRUE WHERE id = $1`,
+      [tile.id]
     );
 
-    return { success: true, tile: { ...tile, building_type: buildingType } };
+    const updatedTile = { ...tile };
+    updatedTile[columnName] = true;
+
+    return { success: true, tile: updatedTile };
   }
 
   // 금 생산 (모든 광산)
@@ -46,8 +53,8 @@ class BuildingService {
       `SELECT t.*, p.id as player_id
        FROM tiles t
        JOIN players p ON t.owner_id = p.id
-       WHERE t.game_id = $1 AND t.building_type = $2`,
-      [gameId, GAME_CONSTANTS.BUILDING_TYPES.MINE]
+       WHERE t.game_id = $1 AND t.has_mine = TRUE`,
+      [gameId]
     );
 
     const updates = [];
@@ -70,8 +77,8 @@ class BuildingService {
   async produceTroops(gameId) {
     const campsResult = await pool.query(
       `SELECT * FROM tiles
-       WHERE game_id = $1 AND building_type = $2`,
-      [gameId, GAME_CONSTANTS.BUILDING_TYPES.CAMP]
+       WHERE game_id = $1 AND has_camp = TRUE`,
+      [gameId]
     );
 
     const updates = [];

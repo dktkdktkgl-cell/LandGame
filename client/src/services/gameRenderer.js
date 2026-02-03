@@ -184,12 +184,27 @@ class GameRenderer {
       }
 
       // 건물 그리기
-      if (tile.building_type) {
+      const hasBuildings = tile.has_camp || tile.has_mine;
+      if (hasBuildings) {
         const centerX = padding + tile.x * this.tileSize + this.tileSize / 2;
         const centerY = padding + tile.y * this.tileSize + this.tileSize / 2;
 
-        if (tile.building_type === GAME_CONSTANTS.BUILDING_TYPES.CAMP) {
-          // 군인캠프 (삼각형)
+        // 둘 다 있는 경우 좌우로 배치
+        if (tile.has_camp && tile.has_mine) {
+          // 군인캠프 (왼쪽 삼각형)
+          this.ctx.fillStyle = '#ff6b6b';
+          this.ctx.beginPath();
+          this.ctx.moveTo(centerX - 8, centerY - 6);
+          this.ctx.lineTo(centerX - 14, centerY + 6);
+          this.ctx.lineTo(centerX - 2, centerY + 6);
+          this.ctx.closePath();
+          this.ctx.fill();
+
+          // 광산 (오른쪽 사각형)
+          this.ctx.fillStyle = '#ffd700';
+          this.ctx.fillRect(centerX + 2, centerY - 6, 12, 12);
+        } else if (tile.has_camp) {
+          // 군인캠프만 (중앙 삼각형)
           this.ctx.fillStyle = '#ff6b6b';
           this.ctx.beginPath();
           this.ctx.moveTo(centerX, centerY - 8);
@@ -197,8 +212,8 @@ class GameRenderer {
           this.ctx.lineTo(centerX + 8, centerY + 8);
           this.ctx.closePath();
           this.ctx.fill();
-        } else if (tile.building_type === GAME_CONSTANTS.BUILDING_TYPES.MINE) {
-          // 광산 (사각형)
+        } else if (tile.has_mine) {
+          // 광산만 (중앙 사각형)
           this.ctx.fillStyle = '#ffd700';
           this.ctx.fillRect(centerX - 8, centerY - 8, 16, 16);
         }
@@ -213,7 +228,7 @@ class GameRenderer {
         this.ctx.font = `bold ${CANVAS_CONSTANTS.FONT_SIZE}px Arial`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(tile.troop_count, centerX, centerY + (tile.building_type ? 12 : 0));
+        this.ctx.fillText(tile.troop_count, centerX, centerY + (hasBuildings ? 12 : 0));
       }
     });
   }

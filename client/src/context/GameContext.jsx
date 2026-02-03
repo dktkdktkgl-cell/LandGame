@@ -49,11 +49,11 @@ export function GameProvider({ children }) {
     });
 
     // 건물 건설
-    socket.on('buildingBuilt', ({ x, y, buildingType, playerId }) => {
+    socket.on('buildingBuilt', ({ x, y, buildingType, playerId, has_camp, has_mine }) => {
       setGameState(prev => {
         const newTiles = prev.tiles.map(tile => {
           if (tile.x === x && tile.y === y) {
-            return { ...tile, building_type: buildingType };
+            return { ...tile, has_camp, has_mine };
           }
           return tile;
         });

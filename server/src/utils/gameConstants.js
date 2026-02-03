@@ -17,7 +17,7 @@ export const GAME_CONSTANTS = {
   VICTORY_CHECK_INTERVAL: 5000,        // 5초
 
   // 비용
-  LAND_CLAIM_COST: 10,
+  LAND_CLAIM_COST: 0,  // 테스트용: 점령 비용 무료
   CAMP_BUILD_COST: 0,
   MINE_BUILD_COST: 0,
 

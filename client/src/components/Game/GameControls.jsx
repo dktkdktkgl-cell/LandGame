@@ -88,9 +88,12 @@ function GameControls() {
           {selectedTileData && (
             <>
               <p>소유자: {isMyTile ? '나' : '다른 플레이어'}</p>
-              {selectedTileData.building_type && (
+              {(selectedTileData.has_camp || selectedTileData.has_mine) && (
                 <p>
-                  건물: {selectedTileData.building_type === GAME_CONSTANTS.BUILDING_TYPES.CAMP ? '군인캠프' : '광산'}
+                  건물: {[
+                    selectedTileData.has_camp && '🏕️ 군인캠프',
+                    selectedTileData.has_mine && '⛏️ 광산'
+                  ].filter(Boolean).join(', ')}
                 </p>
               )}
               {selectedTileData.troop_count > 0 && (
@@ -101,23 +104,28 @@ function GameControls() {
 
           {!selectedTileData && <p>빈 땅</p>}
 
-          {isMyTile && !selectedTileData?.building_type && (
+          {isMyTile && (
             <>
               <h4 style={{ marginTop: '1rem' }}>건물 건설</h4>
-              <button onClick={() => handleBuildBuilding(GAME_CONSTANTS.BUILDING_TYPES.CAMP)}>
-                🏕️ 군인캠프
-              </button>
-              <button onClick={() => handleBuildBuilding(GAME_CONSTANTS.BUILDING_TYPES.MINE)}>
-                ⛏️ 광산
-              </button>
+              {!selectedTileData?.has_camp && (
+                <button onClick={() => handleBuildBuilding(GAME_CONSTANTS.BUILDING_TYPES.CAMP)}>
+                  🏕️ 군인캠프
+                </button>
+              )}
+              {!selectedTileData?.has_mine && (
+                <button onClick={() => handleBuildBuilding(GAME_CONSTANTS.BUILDING_TYPES.MINE)}>
+                  ⛏️ 광산
+                </button>
+              )}
             </>
           )}
 
-          {isMyTile && selectedTileData?.building_type && selectedTileData.troop_count === 0 && (
+          {isMyTile && (selectedTileData?.has_camp || selectedTileData?.has_mine) && selectedTileData.troop_count === 0 && (
             <p style={{ marginTop: '1rem', color: '#999', fontSize: '0.9rem' }}>
-              💡 {selectedTileData.building_type === GAME_CONSTANTS.BUILDING_TYPES.MINE
-                ? '광산이 금을 생산하고 있습니다.'
-                : '군인캠프가 군인을 생산하고 있습니다.'}
+              💡 {[
+                selectedTileData.has_camp && '군인캠프가 군인 생산 중',
+                selectedTileData.has_mine && '광산이 금 생산 중'
+              ].filter(Boolean).join(', ')}
             </p>
           )}
 
