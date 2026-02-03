@@ -14,6 +14,7 @@ function GameStatus() {
   return (
     <div className="game-status">
       <h2>🎮 LandGame</h2>
+      <h3 style={{ color: '#4ecdc4', marginTop: '0.5rem' }}>🌍 중간세계 1</h3>
       <p>
         점령된 땅: {occupiedTiles} / {totalTiles} ({progressPercentage.toFixed(1)}%)
       </p>

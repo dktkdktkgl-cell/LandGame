@@ -135,19 +135,59 @@ class TroopService {
             troopCount: movement.troop_count
           });
         } else {
-          // 빈 땅 - 점령 시작
-          await client.query(
-            'UPDATE tiles SET troop_count = $1, occupation_started_at = NOW() WHERE id = $2',
-            [movement.troop_count, toTile.id]
+          // 빈 땅 - 즉시 점령 시도
+          // 플레이어의 금 확인
+          const playerResult = await client.query(
+            'SELECT * FROM players WHERE id = $1',
+            [movement.player_id]
           );
 
-          results.push({
-            type: 'occupation_start',
-            x: movement.to_x,
-            y: movement.to_y,
-            playerId: movement.player_id,
-            troopCount: movement.troop_count
-          });
+          const player = playerResult.rows[0];
+
+          if (player.gold >= GAME_CONSTANTS.LAND_CLAIM_COST) {
+            // 금 차감 및 땅 즉시 점령
+            await client.query(
+              'UPDATE players SET gold = gold - $1 WHERE id = $2',
+              [GAME_CONSTANTS.LAND_CLAIM_COST, movement.player_id]
+            );
+
+            await client.query(
+              'UPDATE tiles SET owner_id = $1, troop_count = $2 WHERE id = $3',
+              [movement.player_id, movement.troop_count, toTile.id]
+            );
+
+            // 플레이어 땅 개수 업데이트
+            await client.query(
+              `UPDATE players SET land_count = (
+                SELECT COUNT(*) FROM tiles WHERE owner_id = $1
+              ) WHERE id = $1`,
+              [movement.player_id]
+            );
+
+            results.push({
+              type: 'occupation_success',
+              x: movement.to_x,
+              y: movement.to_y,
+              playerId: movement.player_id,
+              troopCount: movement.troop_count,
+              goldCost: GAME_CONSTANTS.LAND_CLAIM_COST
+            });
+          } else {
+            // 금이 부족한 경우 - 군인만 배치 (점령 안 됨)
+            await client.query(
+              'UPDATE tiles SET troop_count = $1, occupation_started_at = NOW() WHERE id = $2',
+              [movement.troop_count, toTile.id]
+            );
+
+            results.push({
+              type: 'occupation_pending',
+              x: movement.to_x,
+              y: movement.to_y,
+              playerId: movement.player_id,
+              troopCount: movement.troop_count,
+              reason: 'insufficient_gold'
+            });
+          }
         }
 
         // 이동 상태 업데이트
