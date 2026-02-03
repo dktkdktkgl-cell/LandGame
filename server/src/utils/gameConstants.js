@@ -5,7 +5,7 @@ export const GAME_CONSTANTS = {
 
   // 플레이어 설정
   MIN_PLAYERS: 1,
-  MAX_PLAYERS: 4,
+  MAX_PLAYERS: 10,  // 테스트용: 최대 10명
   INITIAL_GOLD: 10,
 
   // 타이머 (밀리초)

@@ -1,5 +1,42 @@
 # 변경 이력 (Changelog)
 
+## 2026-02-03 - 점령 표시 수정 및 플레이어 수 확장
+
+### 주요 변경사항
+
+#### 1. 점령한 땅 표시 문제 해결
+- 군인이 빈 땅을 점령해도 타일 색상이 변경되지 않는 버그 수정
+- troopsArrived 이벤트 처리 개선
+- 실시간으로 점령 상태 반영
+
+**변경된 파일:**
+- `client/src/context/GameContext.jsx`
+  - troopsArrived 이벤트 핸들러 재작성
+  - occupation_success, merge, combat 타입별 처리
+  - 타일 및 플레이어 상태 즉시 업데이트
+
+#### 2. 최대 플레이어 수 확장 (4명 → 10명)
+- "Game is full" 에러 해결
+- 더 많은 플레이어가 동시에 플레이 가능
+
+**변경된 파일:**
+- `server/src/utils/gameConstants.js`
+  - MAX_PLAYERS: 4 → 10
+- `client/src/utils/constants.js`
+  - MAX_PLAYERS: 4 → 10
+
+### 버그 수정
+
+**이전 문제:**
+1. ❌ 점령한 땅이 화면에 표시되지 않음
+2. ❌ 4명 이상 접속 시 "Game is full" 에러
+
+**현재 상태:**
+1. ✅ 점령 즉시 타일 색상 변경
+2. ✅ 최대 10명까지 동시 플레이 가능
+
+---
+
 ## 2026-02-03 - 배경 이미지 추가 및 게임 참여 개선
 
 ### 주요 변경사항

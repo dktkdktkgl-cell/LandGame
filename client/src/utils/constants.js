@@ -2,7 +2,7 @@
 export const GAME_CONSTANTS = {
   GRID_SIZE: 15,
   MIN_PLAYERS: 1,
-  MAX_PLAYERS: 4,
+  MAX_PLAYERS: 10,
 
   // 타이머 (밀리초)
   GOLD_PRODUCTION_INTERVAL: 1000,

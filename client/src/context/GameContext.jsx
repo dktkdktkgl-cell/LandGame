@@ -111,10 +111,69 @@ export function GameProvider({ children }) {
 
     // 군인 도착
     socket.on('troopsArrived', ({ arrivals }) => {
-      // 게임 상태 갱신 요청
-      if (gameState) {
-        socketService.getGameState(gameState.game.id);
-      }
+      setGameState(prev => {
+        if (!prev) return prev;
+
+        const newTiles = [...prev.tiles];
+        const newPlayers = [...prev.players];
+
+        arrivals.forEach(arrival => {
+          // 타일 찾기 또는 생성
+          let tileIndex = newTiles.findIndex(t => t.x === arrival.x && t.y === arrival.y);
+
+          if (arrival.type === 'occupation_success') {
+            // 점령 성공
+            if (tileIndex === -1) {
+              // 새 타일 생성
+              newTiles.push({
+                x: arrival.x,
+                y: arrival.y,
+                owner_id: arrival.playerId,
+                troop_count: arrival.troopCount,
+                has_camp: false,
+                has_mine: false
+              });
+            } else {
+              // 기존 타일 업데이트
+              newTiles[tileIndex] = {
+                ...newTiles[tileIndex],
+                owner_id: arrival.playerId,
+                troop_count: arrival.troopCount
+              };
+            }
+
+            // 플레이어 땅 개수 업데이트
+            const playerIndex = newPlayers.findIndex(p => p.id === arrival.playerId);
+            if (playerIndex !== -1) {
+              const landCount = newTiles.filter(t => t.owner_id === arrival.playerId).length;
+              newPlayers[playerIndex] = {
+                ...newPlayers[playerIndex],
+                land_count: landCount
+              };
+            }
+          } else if (arrival.type === 'merge') {
+            // 자신의 땅에 합류
+            if (tileIndex !== -1) {
+              newTiles[tileIndex] = {
+                ...newTiles[tileIndex],
+                troop_count: newTiles[tileIndex].troop_count + arrival.troopCount
+              };
+            }
+          } else if (arrival.type === 'combat') {
+            // 전투 결과 반영
+            if (tileIndex !== -1) {
+              newTiles[tileIndex] = {
+                ...newTiles[tileIndex],
+                troop_count: arrival.defenderSurvivors || 0,
+                owner_id: arrival.winner === arrival.defenderId ? arrival.defenderId :
+                         (arrival.attackerSurvivors > 0 ? arrival.attackerId : newTiles[tileIndex].owner_id)
+              };
+            }
+          }
+        });
+
+        return { ...prev, tiles: newTiles, players: newPlayers };
+      });
     });
 
     // 땅 점령
