@@ -6,12 +6,13 @@ import TimerService from '../services/TimerService.js';
 export function setupSocketHandlers(io) {
   io.on('connection', (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
-    const sessionId = socket.request.session.id;
+    // socket.id를 고유 식별자로 사용 (각 탭마다 다른 플레이어로 인식)
+    const playerId = socket.id;
 
     // 게임 참여
     socket.on('joinGame', async ({ gameId }) => {
       try {
-        const { player, isNew } = await GameService.joinGame(sessionId, gameId);
+        const { player, isNew } = await GameService.joinGame(playerId, gameId);
         const actualGameId = player.game_id;
 
         // Socket을 게임 룸에 참여
@@ -59,17 +60,17 @@ export function setupSocketHandlers(io) {
     socket.on('buildBuilding', async ({ gameId, x, y, buildingType }) => {
       try {
         // 플레이어 ID 조회
-        const playerResult = await GameService.joinGame(sessionId, gameId);
-        const playerId = playerResult.player.id;
+        const playerResult = await GameService.joinGame(playerId, gameId);
+        const playerDbId = playerResult.player.id;
 
-        const result = await BuildingService.buildBuilding(gameId, playerId, x, y, buildingType);
+        const result = await BuildingService.buildBuilding(gameId, playerDbId, x, y, buildingType);
 
         // 모든 플레이어에게 알림
         io.to(gameId).emit('buildingBuilt', {
           x,
           y,
           buildingType,
-          playerId
+          playerId: playerDbId
         });
       } catch (error) {
         socket.emit('error', { message: error.message });
@@ -80,10 +81,10 @@ export function setupSocketHandlers(io) {
     socket.on('moveTroops', async ({ gameId, fromX, fromY, toX, toY, troopCount }) => {
       try {
         // 플레이어 ID 조회
-        const playerResult = await GameService.joinGame(sessionId, gameId);
-        const playerId = playerResult.player.id;
+        const playerResult = await GameService.joinGame(playerId, gameId);
+        const playerDbId = playerResult.player.id;
 
-        const result = await TroopService.moveTroops(gameId, playerId, fromX, fromY, toX, toY, troopCount);
+        const result = await TroopService.moveTroops(gameId, playerDbId, fromX, fromY, toX, toY, troopCount);
 
         // 모든 플레이어에게 알림
         io.to(gameId).emit('troopsMoved', {
@@ -92,7 +93,7 @@ export function setupSocketHandlers(io) {
           toX,
           toY,
           troopCount,
-          playerId,
+          playerId: playerDbId,
           arriveAt: result.movement.arrive_at
         });
       } catch (error) {

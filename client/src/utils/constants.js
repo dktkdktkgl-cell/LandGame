@@ -1,7 +1,7 @@
 // 게임 상수 (서버와 동일하게 유지)
 export const GAME_CONSTANTS = {
   GRID_SIZE: 20,
-  MIN_PLAYERS: 2,
+  MIN_PLAYERS: 1,
   MAX_PLAYERS: 4,
 
   // 타이머 (밀리초)

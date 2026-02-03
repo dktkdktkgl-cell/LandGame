@@ -4,7 +4,7 @@ export const GAME_CONSTANTS = {
   GRID_SIZE: 20,
 
   // 플레이어 설정
-  MIN_PLAYERS: 2,
+  MIN_PLAYERS: 1,
   MAX_PLAYERS: 4,
   INITIAL_GOLD: 10,
 
