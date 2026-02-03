@@ -17,11 +17,28 @@ class GameService {
 
   // 게임 참여
   async joinGame(sessionId, gameId = null) {
-    // 게임 ID가 없으면 새 게임 생성
+    // 게임 ID가 없으면 대기 중인 게임 찾기
     let game;
     if (!gameId) {
-      game = await this.createGame();
-      gameId = game.id;
+      // 먼저 대기 중인 게임이 있는지 확인
+      const waitingGameResult = await pool.query(
+        `SELECT * FROM games
+         WHERE status = $1
+         AND (SELECT COUNT(*) FROM players WHERE game_id = games.id AND is_active = true) < $2
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [GAME_CONSTANTS.GAME_STATUS.WAITING, GAME_CONSTANTS.MAX_PLAYERS]
+      );
+
+      if (waitingGameResult.rows.length > 0) {
+        // 대기 중인 게임에 참여
+        game = waitingGameResult.rows[0];
+        gameId = game.id;
+      } else {
+        // 대기 중인 게임이 없으면 새 게임 생성
+        game = await this.createGame();
+        gameId = game.id;
+      }
     } else {
       const gameResult = await pool.query('SELECT * FROM games WHERE id = $1', [gameId]);
       if (gameResult.rows.length === 0) {

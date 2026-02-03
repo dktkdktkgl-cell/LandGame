@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import socketService from '../../services/socketService';
 import { GAME_CONSTANTS } from '../../utils/constants';
@@ -6,6 +6,7 @@ import { GAME_CONSTANTS } from '../../utils/constants';
 function GameControls() {
   const { gameState, currentPlayer, selectedTile, setSelectedTile } = useGame();
   const [movementSource, setMovementSource] = useState(null);
+  const [movementSourceData, setMovementSourceData] = useState(null);
   const [troopCount, setTroopCount] = useState(1);
 
   if (!gameState || !currentPlayer) return null;
@@ -15,6 +16,19 @@ function GameControls() {
     : null;
 
   const isMyTile = selectedTileData?.owner_id === currentPlayer.id;
+
+  // 인접 타일 확인
+  const isAdjacent = (from, to) => {
+    if (!from || !to) return false;
+    const dx = Math.abs(from.x - to.x);
+    const dy = Math.abs(from.y - to.y);
+    return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+  };
+
+  // 이동 가능 여부
+  const canMove = movementSource && selectedTile &&
+                  (movementSource.x !== selectedTile.x || movementSource.y !== selectedTile.y) &&
+                  isAdjacent(movementSource, selectedTile);
 
   // 건물 건설
   const handleBuildBuilding = (buildingType) => {
@@ -30,13 +44,15 @@ function GameControls() {
 
   // 군인 이동 시작
   const handleStartMovement = () => {
-    if (!selectedTile || !isMyTile) return;
+    if (!selectedTile || !isMyTile || !selectedTileData) return;
     setMovementSource(selectedTile);
+    setMovementSourceData(selectedTileData);
+    setTroopCount(Math.min(selectedTileData.troop_count, 1));
   };
 
   // 군인 이동 실행
   const handleExecuteMovement = () => {
-    if (!movementSource || !selectedTile) return;
+    if (!canMove) return;
 
     socketService.moveTroops(
       gameState.game.id,
@@ -48,12 +64,14 @@ function GameControls() {
     );
 
     setMovementSource(null);
+    setMovementSourceData(null);
     setTroopCount(1);
   };
 
   // 군인 이동 취소
   const handleCancelMovement = () => {
     setMovementSource(null);
+    setMovementSourceData(null);
     setTroopCount(1);
   };
 
@@ -93,35 +111,12 @@ function GameControls() {
             </>
           )}
 
-          {isMyTile && selectedTileData?.troop_count > 0 && (
+          {isMyTile && selectedTileData?.troop_count > 0 && !movementSource && (
             <>
               <h4 style={{ marginTop: '1rem' }}>군인 이동</h4>
-              {!movementSource ? (
-                <button onClick={handleStartMovement}>
-                  ➡️ 이동 시작
-                </button>
-              ) : (
-                <>
-                  <p>출발지: ({movementSource.x}, {movementSource.y})</p>
-                  <label>
-                    군인 수:
-                    <input
-                      type="number"
-                      min="1"
-                      max={selectedTileData?.troop_count || 1}
-                      value={troopCount}
-                      onChange={(e) => setTroopCount(e.target.value)}
-                      style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
-                    />
-                  </label>
-                  <button onClick={handleExecuteMovement}>
-                    ✅ 이동 실행
-                  </button>
-                  <button onClick={handleCancelMovement} style={{ background: '#666' }}>
-                    ❌ 취소
-                  </button>
-                </>
-              )}
+              <button onClick={handleStartMovement}>
+                ➡️ 이동 시작
+              </button>
             </>
           )}
         </div>
@@ -129,8 +124,48 @@ function GameControls() {
 
       {movementSource && (
         <div className="troop-panel">
-          <p style={{ color: '#4ecdc4' }}>
-            인접한 타일을 선택하세요
+          <h4>군인 이동 중</h4>
+          <p><strong>출발지:</strong> ({movementSource.x}, {movementSource.y})</p>
+          <p><strong>군인:</strong> {movementSourceData?.troop_count || 0}명</p>
+
+          <label>
+            이동할 군인 수:
+            <input
+              type="number"
+              min="1"
+              max={movementSourceData?.troop_count || 1}
+              value={troopCount}
+              onChange={(e) => setTroopCount(e.target.value)}
+              style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
+            />
+          </label>
+
+          {selectedTile && (
+            <>
+              <p style={{ marginTop: '0.5rem' }}>
+                <strong>도착지:</strong> ({selectedTile.x}, {selectedTile.y})
+              </p>
+              {!canMove && (
+                <p style={{ color: '#ff6b6b', fontSize: '0.9rem' }}>
+                  ⚠️ 인접한 타일만 선택 가능합니다
+                </p>
+              )}
+            </>
+          )}
+
+          <button
+            onClick={handleExecuteMovement}
+            disabled={!canMove}
+            style={{ marginTop: '0.5rem' }}
+          >
+            ✅ 이동 실행
+          </button>
+          <button onClick={handleCancelMovement} style={{ background: '#666' }}>
+            ❌ 취소
+          </button>
+
+          <p style={{ color: '#4ecdc4', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+            💡 인접한 타일을 클릭하세요
           </p>
         </div>
       )}
