@@ -1,0 +1,16 @@
+{
+  "name": "landgame",
+  "version": "1.0.0",
+  "description": "LandGame - Multiplayer Territory Conquest Game",
+  "private": true,
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "echo \"Please run 'npm run dev:server' and 'npm run dev:client' in separate terminals\"",
+    "migrate": "cd server && npm run migrate"
+  },
+  "keywords": ["game", "multiplayer", "websocket", "react"],
+  "author": "",
+  "license": "MIT"
+}
