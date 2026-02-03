@@ -17,18 +17,9 @@ function GameControls() {
 
   const isMyTile = selectedTileData?.owner_id === currentPlayer.id;
 
-  // 인접 타일 확인
-  const isAdjacent = (from, to) => {
-    if (!from || !to) return false;
-    const dx = Math.abs(from.x - to.x);
-    const dy = Math.abs(from.y - to.y);
-    return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
-  };
-
-  // 이동 가능 여부
+  // 이동 가능 여부 (같은 타일이 아니면 이동 가능)
   const canMove = movementSource && selectedTile &&
-                  (movementSource.x !== selectedTile.x || movementSource.y !== selectedTile.y) &&
-                  isAdjacent(movementSource, selectedTile);
+                  (movementSource.x !== selectedTile.x || movementSource.y !== selectedTile.y);
 
   // 건물 건설
   const handleBuildBuilding = (buildingType) => {
@@ -147,7 +138,7 @@ function GameControls() {
               </p>
               {!canMove && (
                 <p style={{ color: '#ff6b6b', fontSize: '0.9rem' }}>
-                  ⚠️ 인접한 타일만 선택 가능합니다
+                  ⚠️ 다른 타일을 선택하세요
                 </p>
               )}
             </>
@@ -165,7 +156,7 @@ function GameControls() {
           </button>
 
           <p style={{ color: '#4ecdc4', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-            💡 인접한 타일을 클릭하세요
+            💡 이동할 타일을 클릭하세요
           </p>
         </div>
       )}

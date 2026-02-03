@@ -32,14 +32,9 @@ class TroopService {
         throw new Error('Not enough troops');
       }
 
-      // 인접 타일인지 확인 (상하좌우만 이동 가능)
-      const isAdjacent = (
-        (Math.abs(fromX - toX) === 1 && fromY === toY) ||
-        (Math.abs(fromY - toY) === 1 && fromX === toX)
-      );
-
-      if (!isAdjacent) {
-        throw new Error('Can only move to adjacent tiles');
+      // 같은 타일로 이동 불가
+      if (fromX === toX && fromY === toY) {
+        throw new Error('Cannot move to the same tile');
       }
 
       // 도착지가 맵 범위 내인지 확인
