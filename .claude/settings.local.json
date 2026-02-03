@@ -20,7 +20,11 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
-      "Bash(npm run clear:*)"
+      "Bash(npm run clear:*)",
+      "Bash(npm start)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(node run_002.js:*)",
+      "Bash(ping:*)"
     ]
   }
 }
