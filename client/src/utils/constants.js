@@ -1,6 +1,6 @@
 // 게임 상수 (서버와 동일하게 유지)
 export const GAME_CONSTANTS = {
-  GRID_SIZE: 20,
+  GRID_SIZE: 15,
   MIN_PLAYERS: 1,
   MAX_PLAYERS: 4,
 
@@ -18,7 +18,7 @@ export const GAME_CONSTANTS = {
   GOLD_PER_MINE: 1,
 
   // 승리 조건
-  VICTORY_LAND_COUNT: 200,
+  VICTORY_LAND_COUNT: 113,
 
   // 건물 타입
   BUILDING_TYPES: {

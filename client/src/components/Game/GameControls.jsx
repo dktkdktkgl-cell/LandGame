@@ -113,6 +113,14 @@ function GameControls() {
             </>
           )}
 
+          {isMyTile && selectedTileData?.building_type && selectedTileData.troop_count === 0 && (
+            <p style={{ marginTop: '1rem', color: '#999', fontSize: '0.9rem' }}>
+              💡 {selectedTileData.building_type === GAME_CONSTANTS.BUILDING_TYPES.MINE
+                ? '광산이 금을 생산하고 있습니다.'
+                : '군인캠프가 군인을 생산하고 있습니다.'}
+            </p>
+          )}
+
           {isMyTile && selectedTileData?.troop_count > 0 && (
             <>
               <h4 style={{ marginTop: '1rem' }}>군인 명령</h4>

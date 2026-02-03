@@ -17,25 +17,39 @@ class GameService {
 
   // 게임 참여
   async joinGame(sessionId, gameId = null) {
-    // 게임 ID가 없으면 대기 중인 게임 찾기
+    // 먼저 이 session_id를 가진 플레이어가 이미 존재하는지 확인 (전체 게임에서)
+    const existingPlayerResult = await pool.query(
+      'SELECT * FROM players WHERE session_id = $1 AND is_active = true',
+      [sessionId]
+    );
+
+    if (existingPlayerResult.rows.length > 0) {
+      // 이미 존재하는 플레이어 반환
+      return { player: existingPlayerResult.rows[0], isNew: false };
+    }
+
+    // 게임 ID가 없으면 대기 중인 게임 찾기 또는 새로 생성
     let game;
     if (!gameId) {
-      // 먼저 대기 중인 게임이 있는지 확인
-      const waitingGameResult = await pool.query(
+      // 먼저 대기 중이거나 진행 중인 게임이 있는지 확인 (단일 서버 모드)
+      const activeGameResult = await pool.query(
         `SELECT * FROM games
-         WHERE status = $1
-         AND (SELECT COUNT(*) FROM players WHERE game_id = games.id AND is_active = true) < $2
+         WHERE (status = $1 OR status = $2)
          ORDER BY created_at DESC
          LIMIT 1`,
-        [GAME_CONSTANTS.GAME_STATUS.WAITING, GAME_CONSTANTS.MAX_PLAYERS]
+        [GAME_CONSTANTS.GAME_STATUS.WAITING, GAME_CONSTANTS.GAME_STATUS.PLAYING]
       );
 
-      if (waitingGameResult.rows.length > 0) {
-        // 대기 중인 게임에 참여
-        game = waitingGameResult.rows[0];
+      if (activeGameResult.rows.length > 0) {
+        game = activeGameResult.rows[0];
         gameId = game.id;
+
+        // 게임이 이미 시작되었으면 참여 불가
+        if (game.status === GAME_CONSTANTS.GAME_STATUS.PLAYING) {
+          throw new Error('Game already started. Cannot join.');
+        }
       } else {
-        // 대기 중인 게임이 없으면 새 게임 생성
+        // 활성 게임이 없으면 새 게임 생성
         game = await this.createGame();
         gameId = game.id;
       }
@@ -45,16 +59,6 @@ class GameService {
         throw new Error('Game not found');
       }
       game = gameResult.rows[0];
-
-      // 이미 해당 게임에 참여 중인지 확인 (같은 게임 내에서만 체크)
-      const existingPlayer = await pool.query(
-        'SELECT * FROM players WHERE session_id = $1 AND game_id = $2 AND is_active = true',
-        [sessionId, gameId]
-      );
-
-      if (existingPlayer.rows.length > 0) {
-        return { player: existingPlayer.rows[0], isNew: false };
-      }
     }
 
     // 게임이 대기 중인지 확인

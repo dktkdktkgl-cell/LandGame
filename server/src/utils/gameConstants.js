@@ -1,7 +1,7 @@
 // 게임 상수
 export const GAME_CONSTANTS = {
   // 맵 크기
-  GRID_SIZE: 20,
+  GRID_SIZE: 15,
 
   // 플레이어 설정
   MIN_PLAYERS: 1,
@@ -27,7 +27,7 @@ export const GAME_CONSTANTS = {
 
   // 승리 조건
   VICTORY_LAND_PERCENTAGE: 0.5,        // 50%
-  VICTORY_LAND_COUNT: 200,             // 20x20의 50%
+  VICTORY_LAND_COUNT: 113,             // 15x15의 50% (112.5 반올림)
 
   // 건물 타입
   BUILDING_TYPES: {
