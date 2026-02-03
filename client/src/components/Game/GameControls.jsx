@@ -45,6 +45,8 @@ function GameControls() {
   const handleExecuteMovement = () => {
     if (!canMove) return;
 
+    const targetTile = selectedTile;
+
     socketService.moveTroops(
       gameState.game.id,
       movementSource.x,
@@ -54,9 +56,11 @@ function GameControls() {
       parseInt(troopCount)
     );
 
+    // 이동 완료 후 도착지 타일을 선택 상태로 유지
     setMovementSource(null);
     setMovementSourceData(null);
     setTroopCount(1);
+    setSelectedTile(targetTile);
   };
 
   // 군인 이동 취소
@@ -66,11 +70,18 @@ function GameControls() {
     setTroopCount(1);
   };
 
+  // 초기 명령으로 돌아가기 (타일 선택 유지)
+  const handleResetToInitialState = () => {
+    setMovementSource(null);
+    setMovementSourceData(null);
+    setTroopCount(1);
+  };
+
   return (
     <div className="game-controls">
       <h3>🎮 게임 제어</h3>
 
-      {selectedTile && (
+      {selectedTile && !movementSource && (
         <div className="building-menu">
           <h4>선택된 타일: ({selectedTile.x}, {selectedTile.y})</h4>
 
@@ -102,11 +113,14 @@ function GameControls() {
             </>
           )}
 
-          {isMyTile && selectedTileData?.troop_count > 0 && !movementSource && (
+          {isMyTile && selectedTileData?.troop_count > 0 && (
             <>
-              <h4 style={{ marginTop: '1rem' }}>군인 이동</h4>
+              <h4 style={{ marginTop: '1rem' }}>군인 명령</h4>
               <button onClick={handleStartMovement}>
                 ➡️ 이동 시작
+              </button>
+              <button style={{ background: '#6b5b95' }}>
+                🛡️ 방어하기
               </button>
             </>
           )}
@@ -153,6 +167,9 @@ function GameControls() {
           </button>
           <button onClick={handleCancelMovement} style={{ background: '#666' }}>
             ❌ 취소
+          </button>
+          <button onClick={handleResetToInitialState} style={{ background: '#4a90e2', marginTop: '0.5rem' }}>
+            🔄 처음으로
           </button>
 
           <p style={{ color: '#4ecdc4', fontSize: '0.9rem', marginTop: '0.5rem' }}>

@@ -11,6 +11,7 @@ export function GameProvider({ children }) {
   const [selectedTile, setSelectedTile] = useState(null);
   const [actionMode, setActionMode] = useState(null); // 'build', 'moveTroops'
   const [error, setError] = useState(null);
+  const [pendingMovement, setPendingMovement] = useState(null); // 애니메이션을 위한 이동 정보
 
   useEffect(() => {
     const socket = socketService.connect();
@@ -62,7 +63,10 @@ export function GameProvider({ children }) {
     });
 
     // 군인 이동
-    socket.on('troopsMoved', ({ fromX, fromY, toX, toY, troopCount }) => {
+    socket.on('troopsMoved', ({ fromX, fromY, toX, toY, troopCount, playerId }) => {
+      // 애니메이션을 위한 이동 정보 설정
+      setPendingMovement({ fromX, fromY, toX, toY, troopCount, playerId, timestamp: Date.now() });
+
       setGameState(prev => {
         const newTiles = prev.tiles.map(tile => {
           if (tile.x === fromX && tile.y === fromY) {
@@ -148,7 +152,9 @@ export function GameProvider({ children }) {
     setSelectedTile,
     actionMode,
     setActionMode,
-    error
+    error,
+    pendingMovement,
+    setPendingMovement
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -7,6 +7,8 @@ class GameRenderer {
     this.tileSize = CANVAS_CONSTANTS.TILE_SIZE;
     this.gridSize = GAME_CONSTANTS.GRID_SIZE;
     this.selectedTile = null;
+    this.movingTroops = []; // 이동 중인 군인들
+    this.animationFrameId = null;
 
     // Canvas 크기 설정
     const canvasSize = this.tileSize * this.gridSize + CANVAS_CONSTANTS.GRID_PADDING * 2;
@@ -20,7 +22,103 @@ class GameRenderer {
     this.clear();
     this.drawGrid();
     this.drawTiles(tiles, players);
+    this.drawMovingTroops(players);
     this.drawSelectedTile();
+  }
+
+  // 군인 이동 애니메이션 시작
+  startTroopMovement(fromX, fromY, toX, toY, troopCount, playerColor) {
+    const movement = {
+      fromX,
+      fromY,
+      toX,
+      toY,
+      troopCount,
+      playerColor,
+      progress: 0, // 0 ~ 1
+      startTime: Date.now(),
+      duration: GAME_CONSTANTS.TROOP_MOVEMENT_TIME
+    };
+
+    this.movingTroops.push(movement);
+
+    // 애니메이션이 아직 실행 중이 아니면 시작
+    if (!this.animationFrameId) {
+      this.animate();
+    }
+  }
+
+  // 애니메이션 루프
+  animate() {
+    const now = Date.now();
+    let hasMovingTroops = false;
+
+    // 각 이동 중인 군인의 진행도 업데이트
+    this.movingTroops = this.movingTroops.filter(movement => {
+      const elapsed = now - movement.startTime;
+      movement.progress = Math.min(elapsed / movement.duration, 1);
+
+      // 아직 이동 중
+      if (movement.progress < 1) {
+        hasMovingTroops = true;
+        return true;
+      }
+
+      // 이동 완료
+      return false;
+    });
+
+    // 계속 애니메이션이 필요한 경우
+    if (hasMovingTroops) {
+      this.animationFrameId = requestAnimationFrame(() => this.animate());
+    } else {
+      this.animationFrameId = null;
+    }
+  }
+
+  // 이동 중인 군인 그리기
+  drawMovingTroops(players) {
+    const padding = CANVAS_CONSTANTS.GRID_PADDING;
+
+    this.movingTroops.forEach(movement => {
+      const startX = padding + movement.fromX * this.tileSize + this.tileSize / 2;
+      const startY = padding + movement.fromY * this.tileSize + this.tileSize / 2;
+      const endX = padding + movement.toX * this.tileSize + this.tileSize / 2;
+      const endY = padding + movement.toY * this.tileSize + this.tileSize / 2;
+
+      // 현재 위치 계산 (easing 함수 적용)
+      const progress = this.easeInOutQuad(movement.progress);
+      const currentX = startX + (endX - startX) * progress;
+      const currentY = startY + (endY - startY) * progress;
+
+      // 이동 중인 군인 표시 (원으로)
+      this.ctx.fillStyle = movement.playerColor;
+      this.ctx.beginPath();
+      this.ctx.arc(currentX, currentY, 8, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // 군인 수 표시
+      this.ctx.fillStyle = '#fff';
+      this.ctx.font = `bold ${CANVAS_CONSTANTS.FONT_SIZE}px Arial`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(movement.troopCount, currentX, currentY);
+
+      // 이동 경로 표시 (점선)
+      this.ctx.strokeStyle = movement.playerColor;
+      this.ctx.setLineDash([5, 5]);
+      this.ctx.lineWidth = 2;
+      this.ctx.beginPath();
+      this.ctx.moveTo(startX, startY);
+      this.ctx.lineTo(endX, endY);
+      this.ctx.stroke();
+      this.ctx.setLineDash([]);
+    });
+  }
+
+  // Easing 함수
+  easeInOutQuad(t) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
   }
 
   // Canvas 초기화
