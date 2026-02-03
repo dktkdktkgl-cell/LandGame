@@ -14,7 +14,13 @@
       "Bash(psql:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nImplement LandGame - 실시간 멀티플레이어 땅따먹기 게임\n\n- 백엔드: Node.js + Express + Socket.IO + PostgreSQL\n  - 게임 로직 서비스 \\(GameService, BuildingService, TroopService, CombatService, TimerService\\)\n  - 실시간 이벤트 처리 및 타이머 관리\n  - PostgreSQL 스키마 및 마이그레이션\n\n- 프론트엔드: React + Vite + HTML5 Canvas\n  - Canvas 기반 20x20 그리드 렌더링\n  - Socket.IO 실시간 통신\n  - 게임 로비 및 플레이어 관리\n  - 건물 건설, 군인 이동, 전투 UI\n\n- 게임 기능:\n  - 2-4명 멀티플레이어\n  - 건물 시스템 \\(군인캠프, 광산\\)\n  - 자원 관리 및 군인 생산\n  - 군인 이동 및 전투\n  - 땅 점령 및 승리 조건\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(npm install)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm run migrate:*)",
+      "Bash(npm run dev)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run clear:*)"
     ]
   }
 }

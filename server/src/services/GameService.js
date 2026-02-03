@@ -17,16 +17,6 @@ class GameService {
 
   // 게임 참여
   async joinGame(sessionId, gameId = null) {
-    // 이미 게임에 참여 중인지 확인
-    const existingPlayer = await pool.query(
-      'SELECT * FROM players WHERE session_id = $1 AND is_active = true',
-      [sessionId]
-    );
-
-    if (existingPlayer.rows.length > 0) {
-      return { player: existingPlayer.rows[0], isNew: false };
-    }
-
     // 게임 ID가 없으면 새 게임 생성
     let game;
     if (!gameId) {
@@ -38,6 +28,16 @@ class GameService {
         throw new Error('Game not found');
       }
       game = gameResult.rows[0];
+
+      // 이미 해당 게임에 참여 중인지 확인 (같은 게임 내에서만 체크)
+      const existingPlayer = await pool.query(
+        'SELECT * FROM players WHERE session_id = $1 AND game_id = $2 AND is_active = true',
+        [sessionId, gameId]
+      );
+
+      if (existingPlayer.rows.length > 0) {
+        return { player: existingPlayer.rows[0], isNew: false };
+      }
     }
 
     // 게임이 대기 중인지 확인
